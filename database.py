@@ -372,6 +372,7 @@ def get_custom_channels() -> list:
 def delete_custom_channel(number: int):
     with get_db() as conn:
         conn.execute("DELETE FROM custom_channels WHERE number = ?", (number,))
+        conn.execute("DELETE FROM hidden_channels WHERE number = ?", (number,))
 
 
 def save_channel_override(number: int, override_json: str):

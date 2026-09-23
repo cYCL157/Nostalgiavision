@@ -118,6 +118,8 @@ def _all_channel_configs() -> list:
         result.append(c)
 
     for row in db.get_custom_channels():
+        if row["number"] in hidden:
+            continue
         try:
             data = json.loads(row["config_json"])
             result.append(ChannelConfig(**data))
@@ -360,11 +362,8 @@ def api_guide():
         by_channel.setdefault(cid, []).append(r)
 
     # Build channel list with current program info
-    hidden = db.get_hidden_channels()
     channels_out = []
-    for cfg in PREDEFINED_CHANNELS:
-        if cfg.number in hidden:
-            continue
+    for cfg in _all_channel_configs():
         cid = str(cfg.number)
         progs = by_channel.get(cid, [])
         channels_out.append({
@@ -374,21 +373,6 @@ def api_guide():
             "logo_url": _logo_url(cfg.number),
             "programs": progs,
         })
-    # Custom channels
-    for row in db.get_custom_channels():
-        try:
-            d = json.loads(row["config_json"])
-            cid = str(d["number"])
-            progs = by_channel.get(cid, [])
-            channels_out.append({
-                "number": d["number"],
-                "name": d["name"],
-                "type": d.get("type", "mixed"),
-                "logo_url": _logo_url(d["number"]),
-                "programs": progs,
-            })
-        except Exception:
-            pass
 
     return jsonify({
         "start": start_ms,
